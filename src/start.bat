@@ -1,0 +1,1 @@
+powershell.exe ./launcher.ps1
