@@ -163,8 +163,21 @@ async function SiteDetails(originUrl, tabId) {
 
     const wikipedia = function(tabId) {
         const parser = function() {
-            
+            const root = document.querySelector("#firstHeading");
+
+            // Not viewing article
+            if (!root) return null;
+
+            return root.innerHTML.replace(/<[^>]*>/g, '');
         }
+
+        const callback = function(result) {
+            if (!result) return null;
+
+            return "Reading " + result;
+        }
+
+        return genericParser(tabId, parser, callback);
     }
 
     const sites = {
