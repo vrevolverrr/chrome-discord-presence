@@ -12,7 +12,6 @@ xcopy D:\Projects\rpc-chrome\src\extension D:\Projects\rpc-chrome\release\extens
 xcopy D:\Projects\rpc-chrome\config.json D:\Projects\rpc-chrome\release
 xcopy D:\Projects\rpc-chrome\chromium.ico D:\Projects\rpc-chrome\release
 
-dart compile exe ./src/launcher.dart
-py ./src/pe_helper.py
-
 rd /s /q D:\Projects\rpc-chrome\client.dist
+
+dart compile exe ./src/launcher.dart
