@@ -15,14 +15,14 @@ try:
     with open("config.json", "r") as f:
         config = json.load(f)
 except FileNotFoundError:
-    config = {"label": "Chrome RPC"}
+    config = {"label": "Chrome RPC", "label_hyperlink": "https://github.com/vrevolverrr/chrome-rpc"}
 
 def RPCThread():
     RPC = Presence('827470852118806528')
     RPC.connect()
 
     while True:
-        RPC.update(large_image=icon, large_text=activeSiteOrigin, buttons=[{"label": config["label"], "url": "https://discord.com"}], start=startTime, state=extraDetails, details=activeSiteTitle)
+        RPC.update(large_image=icon, large_text=activeSiteOrigin, buttons=[{"label": config["label"], "url": config["label_hyperlink"]}], start=startTime, state=extraDetails, details=activeSiteTitle)
         time.sleep(1)
 
 class RequestHandler(http.server.BaseHTTPRequestHandler):

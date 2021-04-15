@@ -9,10 +9,10 @@ mkdir D:\Projects\rpc-chrome\release\extension
 xcopy D:\Projects\rpc-chrome\client.dist D:\Projects\rpc-chrome\release\client
 xcopy D:\Projects\rpc-chrome\src\extension D:\Projects\rpc-chrome\release\extension
 
-xcopy D:\Projects\rpc-chrome\src\launcher.ps1 D:\Projects\rpc-chrome\release
 xcopy D:\Projects\rpc-chrome\config.json D:\Projects\rpc-chrome\release
 xcopy D:\Projects\rpc-chrome\chromium.ico D:\Projects\rpc-chrome\release
-xcopy D:\Projects\rpc-chrome\src\start.bat D:\Projects\rpc-chrome\release
-xcopy "D:\Projects\rpc-chrome\src\Chrome RPC.vbs" D:\Projects\rpc-chrome\release
+
+dart compile exe ./src/launcher.dart
+py ./src/pe_helper.py
 
 rd /s /q D:\Projects\rpc-chrome\client.dist
