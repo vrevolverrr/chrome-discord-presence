@@ -48,59 +48,54 @@ async function SiteDetails(originUrl, tabId) {
         });
     }
 
-    // TODO Promise Rejection
     const netflix = function(tabId) {
-        return new Promise((resolve, reject) => {
-            chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                function: () => {
-                    const root =  document.querySelector(".video-title");
-                    
-                    // If video title not found => not playing
-                    if (!root) return null;
+        const parser = function() {
+            const root = document.querySelector(".video-title");
 
-                    // Return video title
-                    const parent = root.querySelector("div") || root;
-                    return parent.querySelector("h4").innerHTML;
-                }
-            }, result => {
-                const activity = result[0].result;
-                if (activity)
-                    resolve("Watching " + activity);
-                else
-                    resolve("Browsing");
-            });
-        });
+            // If not watching
+            if (!root) return null;
+
+            // Return video title
+            const parent = root.querySelector("div") || root;
+            return parent.querySelector("h4").innerHTML;
+        }
+
+        const callback = function(result) {
+            if (result)
+                return "Watching " + result;
+            
+            return null;
+        }
+
+        return genericParser(tabId, parser, callback);
     }
 
     const f2movies = function(tabId) {
-        return new Promise((resolve, reject) => {
-            chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                function: () => {
-                    const root = document.querySelector(".prebreadcrumb");
+        const parser = function() {
+            const root = document.querySelector(".prebreadcrumb");
 
-                    // If video title not found => not playing
-                    if (!root) return null;
+            // If not watching
+            if (!root) return null;
 
-                    // Return video title
-                    return root.querySelectorAll("li")[2].innerText;
-                }
-            }, result => {
-                const activity = result[0].result;
-                if (activity)
-                    resolve("Watching " + activity);
-                else
-                    resolve("Browsing");
-            });
-        });
+            // Return video title
+            return root.querySelectorAll(li)[2].innerText;
+        }
+
+        const callback = function(result) {
+            if (result)
+                return "Watching " + result;
+
+            return null;
+        }
+
+        return genericParser(tabId, parser, callback);
     }
 
     const github = function(tabId) {
         const parser = function() {
             const root = document.querySelector('a[data-pjax="#js-repo-pjax-container"]');
 
-            // If repo name not found => not looking at repo
+            // If not looking at repo
             if (!root) return null;
 
             // Return repo name
