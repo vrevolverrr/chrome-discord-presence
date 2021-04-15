@@ -1,14 +1,11 @@
 import json
 import html
 import time
-import threading
+import urllib.request
 import http.server
 from pypresence import Presence
 
-activeSiteTitle = "Idling"
-activeSiteOrigin = None
-extraDetails = None
-icon = "chrome"
+icons = json.loads(urllib.request.urlopen("https://raw.githubusercontent.com/vrevolverrr/chrome-rpc/main/assets/icons.json").read())
 startTime = time.time()
 
 try:
@@ -17,16 +14,13 @@ try:
 except FileNotFoundError:
     config = {"label": "Chrome RPC", "label_hyperlink": "https://github.com/vrevolverrr/chrome-rpc"}
 
-def RPCThread():
-    RPC = Presence('827470852118806528')
-    RPC.connect()
-
-    while True:
-        RPC.update(large_image=icon, large_text=activeSiteOrigin, buttons=[{"label": config["label"], "url": config["label_hyperlink"]}], start=startTime, state=extraDetails, details=activeSiteTitle)
-        time.sleep(1)
+RPC = Presence('827470852118806528')
+RPC.connect()
+RPC.update(large_image="chrome", buttons=[{"label": config["label"], "url": config["label_hyperlink"]}], start=startTime, details="Idling")
 
 class RequestHandler(http.server.BaseHTTPRequestHandler):
     def do_OPTIONS(self):
+        # CORS
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin","*")
         self.send_header("Access-Control-Allow-Methods","*")
@@ -34,11 +28,8 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_PUT(self):
-        global activeSiteTitle
-        global activeSiteOrigin
-        global extraDetails
-        global icon
-        global label
+        # CORS
+        self.send_response(200)
         self.send_header("Access-Control-Allow-Origin","*")
         self.send_header("Access-Control-Allow-Methods","*")
         self.send_header("Access-Control-Allow-Headers","*")
@@ -47,17 +38,22 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         content_length = int(self.headers["Content-Length"])
         request_json = json.loads(html.unescape(self.rfile.read(content_length).decode('utf-8')))
 
-        activeSiteTitle = request_json["title"]
-        activeSiteOrigin = request_json["originUrl"]
-        extraDetails = request_json["details"]
-        icon = request_json["icon"]
+        if (request_json["originUrl"] in list(icons.keys())):
+            icon = icons[request_json["originUrl"]]
+        else:
+            icon = "chrome"
 
-def server_thread():
-    server = http.server.ThreadingHTTPServer(('localhost', 1231), RequestHandler)
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        server.socket.close()
+        RPC.update(
+            large_image=icon,
+            large_text=request_json["originUrl"],
+            buttons=[{"label": config["label"], "url": config["label_hyperlink"]}],
+            start=startTime,
+            state=request_json["details"],
+            details=request_json["title"]
+            )
 
-threading.Thread(target=server_thread).start()
-RPCThread()
+server = http.server.ThreadingHTTPServer(('localhost', 1231), RequestHandler)
+try:
+    server.serve_forever()
+except KeyboardInterrupt:
+    server.socket.close()

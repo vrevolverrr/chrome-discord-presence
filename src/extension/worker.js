@@ -1,32 +1,3 @@
-function SiteIcons(originUrl) {
-    /**
-     * Returns the icon name for the website if present else return the default icon name
-     * @param {string} originUrl - The origin URL (eg: https://www.youtube.com/watch?v=dwdwa => https://www.youtube.com)
-     * 
-     * @returns {string}
-     */
-    
-    const icons = {
-        "https://discord.com": "discord",
-        "https://www.facebook.com": "facebook",
-        "https://www.google.com": "google",
-        "https://instagram.com": "instagram",
-        "https://www.netflix.com": "netflix",
-        "https://www.reddit.com": "reddit",
-        "https://mail.google.com": "gmail",
-        "https://stackoverflow.com": "stackoverflow",
-        "https://www.twitch.tv": "twitch",
-        "https://www.youtube.com": "youtube",
-        "https://en.wikipedia.org": "wikipedia",
-        "https://web.whatsapp.com": "whatsapp",
-        "https://www4.f2movies.to": "f2movies",
-        "https://github.com": "github"
-    }
-    
-    const icon = icons[originUrl];
-    return (icon != undefined) ? icon : "chrome";
-}
-
 async function SiteDetails(originUrl, tabId) {
     /**
      * Returns the extra details if any provided by defined parsers by executing scripts in the context of the specific tabs
@@ -206,7 +177,6 @@ function RPC() {
 
     // Helper functions
     const getOrigin = (url) => new URL(url).origin;
-    const getIcon = (originUrl) => SiteIcons(originUrl);
     const getDetails = async (originUrl, tabId) => await SiteDetails(originUrl, tabId);
     const getTitle = async function(originUrl, fallbackTitle) {
         /**
@@ -246,7 +216,6 @@ function RPC() {
         
         // Retrieve active site details
         const originUrl = getOrigin(url);
-        const icon = getIcon(originUrl);
         const title = await getTitle(originUrl, fallbackTitle);
         const details = await getDetails(originUrl, tabId);
 
@@ -254,8 +223,8 @@ function RPC() {
 
         // Generate the JSON payload containing the site details
         const payload = JSON.stringify({
-            "title": title, "originUrl": originUrl,
-            "url": url, "details": details, "icon": icon
+            "title": title || "New Tab", "originUrl": originUrl || "New Tab",
+            "url": url, "details": details,
         });
 
         const payloadSize = payload.length.toString();
