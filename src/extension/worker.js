@@ -17,7 +17,7 @@ function SiteIcons(originUrl) {
         "https://stackoverflow.com": "stackoverflow",
         "https://www.twitch.tv": "twitch",
         "https://www.youtube.com": "youtube",
-        "https://www.wikipedia.org": "wikipedia",
+        "https://en.wikipedia.org": "wikipedia",
         "https://web.whatsapp.com": "whatsapp",
         "https://www4.f2movies.to": "f2movies",
         "https://github.com": "github"
@@ -36,6 +36,18 @@ async function SiteDetails(originUrl, tabId) {
      * @returns {string}
      */
 
+    const genericParser = function(tabId, parserFunction, callbackFunction) {
+        return new Promise((resolve, reject) => {
+            chrome.scripting.executeScript({
+                target: { tabId: tabId },
+                function: parserFunction
+            }, result => {
+                const activity = callbackFunction(result[0].result);
+                resolve(activity);
+            });
+        });
+    }
+
     // TODO Promise Rejection
     const netflix = function(tabId) {
         return new Promise((resolve, reject) => {
@@ -47,6 +59,7 @@ async function SiteDetails(originUrl, tabId) {
                     // If video title not found => not playing
                     if (!root) return null;
 
+                    // Return video title
                     const parent = root.querySelector("div") || root;
                     return parent.querySelector("h4").innerHTML;
                 }
@@ -70,6 +83,7 @@ async function SiteDetails(originUrl, tabId) {
                     // If video title not found => not playing
                     if (!root) return null;
 
+                    // Return video title
                     return root.querySelectorAll("li")[2].innerText;
                 }
             }, result => {
@@ -82,9 +96,84 @@ async function SiteDetails(originUrl, tabId) {
         });
     }
 
+    const github = function(tabId) {
+        const parser = function() {
+            const root = document.querySelector('a[data-pjax="#js-repo-pjax-container"]');
+
+            // If repo name not found => not looking at repo
+            if (!root) return null;
+
+            // Return repo name
+            return root.innerHTML;
+        }
+
+        const callback = function(result) {
+            if (result)
+                return "Viewing " + result;
+            
+            return null;
+        }
+
+        return genericParser(tabId, parser, callback);
+    }
+
+    const reddit = function(tabId) {
+        const parser = function() {
+            const pathname = window.location.pathname;
+
+            // Home page of Reddit
+            if (pathname == "/") return null;
+
+            const numPaths = pathname.split("").reduce((acc, value) => (value === "/" ? acc + 1 : acc), 0);
+
+            // Home page of subreddit
+            if (numPaths == 3) return pathname.substring(0, pathname.length -1);
+
+            // Thread of subreddit
+            return document.querySelectorAll('a[data-click-id="subreddit"]')[1].innerText;
+        }
+
+        const callback = function(result) {
+            if (!result) return null;
+            
+            return "Viewing " + result;
+        }
+
+        return genericParser(tabId, parser, callback);
+    }
+
+    const twitch = function(tabId) {
+        const parser = function() {
+            const root = document.querySelector('h2[data-a-target="stream-title"]');
+            
+            // Not watching anything
+            if (!root) return null;
+
+            return root.innerHTML;
+        }
+
+        const callback = function(result) {
+            if (!result) return null;
+
+            return "Watching " + result;
+        }
+
+        return genericParser(tabId, parser, callback);
+    }
+
+    const wikipedia = function(tabId) {
+        const parser = function() {
+            
+        }
+    }
+
     const sites = {
         "https://www.netflix.com": netflix,
-        "https://www4.f2movies.to": f2movies
+        "https://www4.f2movies.to": f2movies,
+        "https://github.com": github,
+        "https://www.reddit.com": reddit,
+        "https://www.twitch.tv": twitch,
+        "https://en.wikipedia.org": wikipedia
     }
 
     const parser = sites[originUrl];
