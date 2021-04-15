@@ -176,7 +176,13 @@ function RPC() {
     var activeUrl;
 
     // Helper functions
-    const getOrigin = (url) => new URL(url).origin;
+    const getOrigin = (url) => {
+        try {
+            return new URL(url).origin;   
+        } catch {
+            return ""
+        }
+    }
     const getDetails = async (originUrl, tabId) => await SiteDetails(originUrl, tabId);
     const getTitle = async function(originUrl, fallbackTitle) {
         /**
@@ -229,6 +235,8 @@ function RPC() {
 
         const payloadSize = payload.length.toString();
 
+        console.debug(payload);
+
         try {
 
             // Send the payload to the RPC client
@@ -264,9 +272,15 @@ chrome.tabs.onActivated.addListener(async activeInfo => {
     RPCUpdater(tab.id, tab.url, tab.title);
 });
 
+
+const getActiveWindow = function() {
+    return new Promise((resolve, reject) => chrome.windows.getCurrent({}, result => resolve(result)));
+}
+
 // Update interval
 setInterval(async () => {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const activeWindow = await getActiveWindow();
+    const tabs = await chrome.tabs.query({ active: true, windowId: activeWindow.id });
     const tab = tabs[0];
     RPCUpdater(tab.id, tab.url, tab.title);
     console.log("Updated");
